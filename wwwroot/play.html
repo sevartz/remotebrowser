@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RemoteBrowser — Сессия</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #0a0a0a;
+            color: #e5e5e5;
+        }
+        .brand, .mono {
+            font-family: 'Space Mono', monospace;
+        }
+        #screen {
+            background: #1a1a1a;
+            user-select: none;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="border-b border-gray-800 bg-black">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+            <a href="/" class="brand font-bold text-white">RemoteBrowser</a>
+
+            <form id="navForm" class="flex-1 flex gap-2 max-w-2xl mx-auto">
+                <input type="text" id="urlInput" 
+                       placeholder="https://..." 
+                       class="flex-1 px-3 py-1.5 bg-gray-900 border border-gray-700 
+                              rounded text-sm focus:outline-none focus:border-gray-500 text-white">
+                <button type="submit" 
+                        class="px-4 py-1.5 bg-white text-black rounded text-sm hover:bg-gray-200 mono">
+                    Go
+                </button>
+            </form>
+
+            <div class="flex items-center gap-3 text-sm">
+                <span id="userEmail" class="text-gray-400 mono"></span>
+                <button id="logoutBtn" 
+                        class="text-gray-400 hover:text-white mono">
+                    Выйти
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex items-center justify-center p-4">
+        <div class="relative w-full max-w-6xl">
+            <img id="screen" 
+                 class="w-full rounded-md shadow-2xl"
+                 style="aspect-ratio: 16/9;"
+                 alt="browser stream">
+            
+            <div id="status" class="absolute top-3 right-3 mono text-xs 
+                                    bg-black/70 px-2 py-1 rounded">
+                подключение...
+            </div>
+
+            <div class="mt-4 flex gap-2">
+                <form id="typeForm" class="flex-1 flex gap-2">
+                    <input type="text" id="typeInput" 
+                           placeholder="кликни в поле на странице, потом введи текст здесь"
+                           class="flex-1 px-3 py-2 bg-gray-900 border border-gray-700 
+                                  rounded text-sm focus:outline-none focus:border-gray-500 text-white">
+                    <button type="submit" 
+                            class="px-4 py-2 bg-white text-black rounded text-sm 
+                                   hover:bg-gray-200 mono">
+                        Печатать
+                    </button>
+                </form>
+                <button id="pressEnter" 
+                        class="px-4 py-2 bg-gray-800 border border-gray-700 text-white 
+                               rounded text-sm hover:bg-gray-700 mono">
+                    Enter
+                </button>
+                <button id="pressBackspace" 
+                        class="px-4 py-2 bg-gray-800 border border-gray-700 text-white 
+                               rounded text-sm hover:bg-gray-700 mono">
+                    ⌫
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // === Auth check ===
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/auth.html';
+        }
+        document.getElementById('userEmail').textContent = 
+            localStorage.getItem('email') || '';
+
+        // === Helpers ===
+        function authHeaders() {
+            return {
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            };
+        }
+
+        async function apiCall(url, options = {}) {
+            const opts = {
+                ...options,
+                headers: {
+                    ...authHeaders(),
+                    ...(options.headers || {})
+                }
+            };
+            const res = await fetch(url, opts);
+            if (res.status === 401) {
+                // Token expired or invalid
+                localStorage.removeItem('token');
+                localStorage.removeItem('email');
+                window.location.href = '/auth.html';
+                return null;
+            }
+            return res;
+        }
+
+        // === Logout ===
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('email');
+            window.location.href = '/';
+        });
+
+        // === Screenshot streaming ===
+        const screen = document.getElementById('screen');
+        const status = document.getElementById('status');
+        let isLoading = false;
+
+        async function loadFrame() {
+            if (isLoading) return;
+            isLoading = true;
+
+            try {
+                const res = await apiCall('/play/screenshot?t=' + Date.now());
+                if (!res || !res.ok) {
+                    status.textContent = 'ошибка ' + (res ? res.status : '');
+                    return;
+                }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                
+                const newImg = new Image();
+                newImg.onload = () => {
+                    if (screen.src) URL.revokeObjectURL(screen.src);
+                    screen.src = url;
+                    status.textContent = 'онлайн';
+                };
+                newImg.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    status.textContent = 'ошибка загрузки';
+                };
+                newImg.src = url;
+            } catch (err) {
+                status.textContent = 'offline';
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        setInterval(loadFrame, 150);
+        loadFrame();
+
+        // === Clicks ===
+        screen.addEventListener('click', async (e) => {
+            const rect = screen.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width;
+            const y = (e.clientY - rect.top) / rect.height;
+
+            await apiCall('/play/click', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ x, y })
+            });
+        });
+
+        // === Keyboard input ===
+        // Separate input field — user types here, then sends to remote.
+        // More reliable than keystroke forwarding, supports any unicode.
+        const typeInput = document.getElementById('typeInput');
+        const typeForm = document.getElementById('typeForm');
+        const pressEnterBtn = document.getElementById('pressEnter');
+        const pressBackspaceBtn = document.getElementById('pressBackspace');
+
+        // Send text on form submit (button or Enter key)
+        typeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = typeInput.value;
+            if (!text) return;
+            await apiCall('/play/input', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            typeInput.value = '';
+            typeInput.focus();
+        });
+
+        // Press special key on remote
+        async function pressKey(key) {
+            await apiCall('/play/key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key })
+            });
+            typeInput.focus();
+        }
+
+        pressEnterBtn.addEventListener('click', () => pressKey('Enter'));
+        pressBackspaceBtn.addEventListener('click', () => pressKey('Backspace'));
+
+        // === Navigation ===
+        document.getElementById('navForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let url = document.getElementById('urlInput').value.trim();
+            if (!url) return;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+
+            status.textContent = 'переход...';
+            await apiCall('/play/navigate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+        });
+    </script>
+
+</body>
+</html>

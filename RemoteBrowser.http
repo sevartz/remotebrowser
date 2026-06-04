@@ -1,0 +1,57 @@
+@RemoteBrowser_HostAddress = http://localhost:5197
+@id = 725866d6-3875-4bfd-92af-3fbe587b59a5
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NWVlNWVjNy1lNjcyLTQ1M2ItYmZkNi0wODExY2IzZGY5Y2YiLCJlbWFpbCI6ImxlaWxhQG1haWwucnUiLCJqdGkiOiIzZDAyZWFlMi1lZWZjLTRmYWYtYmEzOC01NzM3M2E2MGUzMGYiLCJleHAiOjE3ODAzODE1NTksImlzcyI6IlJlbW90ZUJyb3dzZXIuQXBpIiwiYXVkIjoiUmVtb3RlQnJvd3Nlci5DbGllbnQifQ.hn3WG-MGhMODPuGNFpDb0MCTXZw2fuHZ7rfUWX0wxQs
+###
+
+POST {{RemoteBrowser_HostAddress}}/sessions
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "Url":"https://vk.com"
+}
+
+###
+DELETE {{RemoteBrowser_HostAddress}}/sessions/{{id}}
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 
+GET {{RemoteBrowser_HostAddress}}/sessions/{{id}}
+Accept: application/json
+
+###
+GET {{RemoteBrowser_HostAddress}}/sessions/
+Accept: application/json
+Authorization: Bearer {{token}}
+###
+POST {{RemoteBrowser_HostAddress}}/auth/register
+Accept: application/json
+Content-Type: application/json
+
+{
+    "Email":"leila@mail.ru",
+    "Password":"1234567890"
+}
+###
+POST {{RemoteBrowser_HostAddress}}/play/navigate
+Accept: application/json
+Content-Type: application/json
+
+{ "url": "https://instagram.com" }
+###
+GET {{RemoteBrowser_HostAddress}}/play/screenshot
+###
+POST {{RemoteBrowser_HostAddress}}/play/click
+Accept: application/json
+Content-Type: application/json
+
+{ "x": 0.5, "y": 0.5 }
+###
+POST {{RemoteBrowser_HostAddress}}/play/navigate
+Accept: application/json    
+Content-Type: application/json
+
+{ "url": "not-a-url" }

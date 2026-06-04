@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RemoteBrowser</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #fafafa;
+        }
+        h1, h2, h3, nav, .mono, .brand {
+            font-family: 'Space Mono', monospace;
+        }
+    </style>
+</head>
+<body class="text-gray-900">
+
+    <header class="border-b border-gray-200 bg-white">
+        <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="/" class="brand text-xl font-bold">RemoteBrowser</a>
+            <nav class="flex items-center gap-6 text-sm">
+                <a href="/auth.html" class="hover:text-blue-600">Войти</a>
+                <a href="/auth.html?mode=register" 
+                   class="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800">
+                    Регистрация
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-6 py-16">
+
+        <section class="mb-20">
+            <h1 class="text-5xl font-bold mb-6 leading-tight">
+                Удалённый браузер<br>
+            </h1>
+            <p class="text-lg text-gray-600 max-w-2xl mb-8">
+                Один Chromium на сервере — доступ с любого устройства. 
+                Открывайте сайты, не боясь попасть под блокировку.
+            </p>
+            <a href="/auth.html?mode=register" 
+               class="inline-block bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 text-sm">
+                Начать пользоваться
+            </a>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+            <div>
+                <h3 class="text-lg font-bold mb-3">Без установки</h3>
+                <p class="text-gray-600 text-sm">
+                    Браузер работает на сервере. Вам нужен только любой современный 
+                    браузер для подключения.
+                </p>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-3">Личные сессии</h3>
+                <p class="text-gray-600 text-sm">
+                    У каждого пользователя своя изолированная сессия. 
+                    Cookies, история — отдельно.
+                </p>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-3">Безопасный доступ</h3>
+                <p class="text-gray-600 text-sm">
+                    JWT-аутентификация, защищённое соединение. 
+                    Никто посторонний не получит контроль.
+                </p>
+            </div>
+        </section>
+
+        <section class="border-t border-gray-200 pt-12 mb-20">
+            <h2 class="text-2xl font-bold mb-4">Технологии</h2>
+            <p class="text-gray-600 text-sm max-w-3xl">
+                ASP.NET Core · Microsoft Playwright · JWT · 
+                PostgreSQL · TypeScript · Tailwind
+            </p>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-gray-200 bg-white">
+        <div class="max-w-5xl mx-auto px-6 py-6 text-sm text-gray-500 flex justify-between">
+            <div>© 2026 RemoteBrowser</div>
+            <a href="https://github.com/sevartz" class="hover:text-gray-900">github</a>
+        </div>
+    </footer>
+
+</body>
+</html>
